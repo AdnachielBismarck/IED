@@ -1,0 +1,86 @@
+[
+  {
+    "cluster_id": 0,
+    "cluster_name": "Emergentes Nearshoring",
+    "cluster_description": "Aceleración reciente de IED. En transición hacia hub manufacturero.",
+    "n_states": 10,
+    "states": [
+      "Baja California",
+      "Baja California Sur",
+      "Chihuahua",
+      "Estado de México",
+      "Guanajuato",
+      "Jalisco",
+      "Nuevo León",
+      "Querétaro",
+      "Quintana Roo",
+      "Sonora"
+    ],
+    "mean_dependency": 25.8,
+    "mean_diversification": 62.4,
+    "mean_nearshoring": 32.1,
+    "mean_stability": 64.7,
+    "mean_hub_score": 19.1
+  },
+  {
+    "cluster_id": 1,
+    "cluster_name": "Economías IED Marginal",
+    "cluster_description": "Bajo volumen histórico de IED. Menor inserción en red internacional de inversión.",
+    "n_states": 20,
+    "states": [
+      "Aguascalientes",
+      "Campeche",
+      "Chiapas",
+      "Coahuila de Zaragoza",
+      "Colima",
+      "Durango",
+      "Guerrero",
+      "Hidalgo",
+      "Michoacán de Ocampo",
+      "Morelos",
+      "Nayarit",
+      "Oaxaca",
+      "Puebla",
+      "San Luis Potosí",
+      "Sinaloa",
+      "Tabasco",
+      "Tamaulipas",
+      "Tlaxcala",
+      "Veracruz de Ignacio de la Llave",
+      "Zacatecas"
+    ],
+    "mean_dependency": 24.9,
+    "mean_diversification": 56.0,
+    "mean_nearshoring": 18.5,
+    "mean_stability": 55.2,
+    "mean_hub_score": 18.4
+  },
+  {
+    "cluster_id": 2,
+    "cluster_name": "Frontera Manufacturera",
+    "cluster_description": "Fuerte señal nearshoring + alta centralidad. Motores del dinamismo post-2021.",
+    "n_states": 1,
+    "states": [
+      "Ciudad de México"
+    ],
+    "mean_dependency": 25.1,
+    "mean_diversification": 15.1,
+    "mean_nearshoring": 35.1,
+    "mean_stability": 61.6,
+    "mean_hub_score": 28.4
+  },
+  {
+    "cluster_id": 3,
+    "cluster_name": "Hubs Diversificados",
+    "cluster_description": "Alta conectividad en red, diversificación elevada. Economías con amplia base inversora.",
+    "n_states": 1,
+    "states": [
+      "Yucatán"
+    ],
+    "mean_dependency": 22.8,
+    "mean_diversification": 77.9,
+    "mean_nearshoring": 30.7,
+    "mean_stability": 53.6,
+    "mean_hub_score": 32.2
+  }
+]

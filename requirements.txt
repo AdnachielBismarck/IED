@@ -1,0 +1,35 @@
+# =============================================================================
+# DEPENDENCIAS DEL PROYECTO — IED Intelligence Platform
+# =============================================================================
+# Instalar con:
+#   pip install -r requirements.txt
+#
+# NOTA IMPORTANTE para Python 3.13:
+#   Si algún paquete falla al compilar (especialmente hdbscan), instalarlo
+#   individualmente con:
+#       pip install <paquete> --break-system-packages
+#
+# El proyecto NO usa hdbscan en producción (usa KMeans), pero si quieres
+# experimentar con él puedes intentar instalarlo por separado.
+# =============================================================================
+
+# ─── Manipulación y análisis de datos ────────────────────────────────────────
+pandas>=2.0.0
+numpy>=1.24.0
+pyarrow>=12.0.0          # formato Parquet (lectura/escritura rápida)
+openpyxl>=3.1.0          # lectura de archivos Excel (.xlsx)
+
+# ─── Machine Learning y estadística ──────────────────────────────────────────
+scikit-learn>=1.3.0      # KMeans, PCA, StandardScaler, SimpleImputer
+
+# ─── Análisis de redes ────────────────────────────────────────────────────────
+networkx>=3.1            # construcción y métricas de grafos
+python-louvain>=0.16     # detección de comunidades (importar como: from community import community_louvain)
+
+# ─── Visualización ────────────────────────────────────────────────────────────
+plotly>=5.15.0           # gráficas interactivas en la app
+matplotlib>=3.7.0        # gráficas estáticas para el PDF
+streamlit>=1.28.0        # framework de la aplicación web
+
+# ─── Generación de reportes PDF ──────────────────────────────────────────────
+reportlab>=4.0.0         # construcción del PDF ejecutivo

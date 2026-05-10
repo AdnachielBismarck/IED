@@ -1,0 +1,78 @@
+# =============================================================================
+# .gitignore — IED Intelligence Platform
+# =============================================================================
+# Este archivo le dice a Git qué archivos y carpetas ignorar al hacer commits.
+# Los archivos ignorados nunca se subirán a GitHub, independientemente de si
+# están en la carpeta del proyecto.
+# =============================================================================
+
+
+# ─── Datos crudos y archivos intermedios ─────────────────────────────────────
+# Los Excel originales pesan varios MB y no son necesarios para la app.
+# Los CSVs de proc_1/ son archivos intermedios, algunos pesan 60-170 MB.
+# Ambos se pueden regenerar corriendo el pipeline desde cero.
+data/raw/
+data/processed/proc_1/
+
+
+# ─── Imágenes generadas por el PDF ───────────────────────────────────────────
+# Se generan automáticamente al correr generate_pdf.py — no necesitan subir.
+reports/img/
+
+
+# ─── PDF generado ────────────────────────────────────────────────────────────
+reports/*.pdf
+
+
+# ─── Python ──────────────────────────────────────────────────────────────────
+# Carpetas de bytecode compilado que Python genera automáticamente.
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+
+# Entornos virtuales
+.env
+.venv
+env/
+venv/
+ENV/
+
+
+# ─── JupyterLab y Jupyter Notebook ───────────────────────────────────────────
+# Checkpoints que Jupyter crea automáticamente al guardar notebooks.
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# Archivos de configuración local de JupyterLab
+.jupyter/
+
+
+# ─── Windows ─────────────────────────────────────────────────────────────────
+# Archivos que Windows genera automáticamente en cada carpeta.
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Archivos temporales de Windows
+*.tmp
+*.temp
+
+
+# ─── Sistema operativo general ───────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+
+# ─── Archivos de credenciales y variables de entorno ─────────────────────────
+# Por seguridad: nunca subir claves, tokens o contraseñas a GitHub.
+.env
+.env.local
+*.key
+secrets.toml
+.streamlit/secrets.toml

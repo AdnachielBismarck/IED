@@ -1,0 +1,198 @@
+{
+  "0": {
+    "id": 0,
+    "countries": [
+      "Estados Unidos de América",
+      "Suiza",
+      "Irlanda",
+      "Israel",
+      "China, República Popular de",
+      "Colombia",
+      "Taiwán",
+      "Uruguay",
+      "Filipinas",
+      "Arabia Saudita"
+    ],
+    "states": [
+      "Baja California",
+      "Baja California Sur",
+      "Campeche",
+      "Chiapas",
+      "Chihuahua",
+      "Ciudad de México",
+      "Tabasco",
+      "Tamaulipas"
+    ],
+    "n_members": 18,
+    "total_ied_internal": 431840.26,
+    "top_country": [
+      "Estados Unidos de América",
+      "Suiza",
+      "Irlanda"
+    ],
+    "top_state": [
+      "Ciudad de México",
+      "Chihuahua",
+      "Baja California"
+    ]
+  },
+  "1": {
+    "id": 1,
+    "countries": [
+      "Luxemburgo",
+      "Hong Kong, China"
+    ],
+    "states": [
+      "Michoacán de Ocampo"
+    ],
+    "n_members": 3,
+    "total_ied_internal": 7096.12,
+    "top_country": [
+      "Luxemburgo",
+      "Hong Kong, China"
+    ],
+    "top_state": [
+      "Michoacán de Ocampo"
+    ]
+  },
+  "2": {
+    "id": 2,
+    "countries": [
+      "España",
+      "Canadá",
+      "Italia",
+      "Suecia",
+      "Tailandia",
+      "Panamá",
+      "Austria",
+      "Venezuela, República Bolivariana de"
+    ],
+    "states": [
+      "Coahuila de Zaragoza",
+      "Colima",
+      "Durango",
+      "Guerrero",
+      "Hidalgo",
+      "Nayarit",
+      "Oaxaca",
+      "Querétaro",
+      "Quintana Roo",
+      "Sinaloa",
+      "Tlaxcala"
+    ],
+    "n_members": 19,
+    "total_ied_internal": 103746.3,
+    "top_country": [
+      "España",
+      "Canadá",
+      "Italia"
+    ],
+    "top_state": [
+      "Coahuila de Zaragoza",
+      "Querétaro",
+      "Quintana Roo"
+    ]
+  },
+  "3": {
+    "id": 3,
+    "countries": [
+      "Países Bajos",
+      "Argentina",
+      "Corea, República de",
+      "Brasil",
+      "Dinamarca",
+      "Noruega",
+      "Malasia",
+      "Federación de Rusia"
+    ],
+    "states": [
+      "Nuevo León",
+      "Veracruz de Ignacio de la Llave"
+    ],
+    "n_members": 10,
+    "total_ied_internal": 64144.4,
+    "top_country": [
+      "Países Bajos",
+      "Argentina",
+      "Corea, República de"
+    ],
+    "top_state": [
+      "Nuevo León",
+      "Veracruz de Ignacio de la Llave"
+    ]
+  },
+  "4": {
+    "id": 4,
+    "countries": [
+      "Japón"
+    ],
+    "states": [
+      "Aguascalientes",
+      "Guanajuato",
+      "Morelos"
+    ],
+    "n_members": 4,
+    "total_ied_internal": 48268.59,
+    "top_country": [
+      "Japón"
+    ],
+    "top_state": [
+      "Guanajuato",
+      "Aguascalientes",
+      "Morelos"
+    ]
+  },
+  "5": {
+    "id": 5,
+    "countries": [
+      "Alemania",
+      "Bélgica",
+      "Reino Unido de la Gran Bretaña e Irlanda del Norte",
+      "Francia",
+      "Australia",
+      "Chile",
+      "Bermudas",
+      "Sudáfrica",
+      "Singapur",
+      "India"
+    ],
+    "states": [
+      "Estado de México",
+      "Jalisco",
+      "Puebla",
+      "San Luis Potosí",
+      "Yucatán"
+    ],
+    "n_members": 15,
+    "total_ied_internal": 115441.62,
+    "top_country": [
+      "Alemania",
+      "Bélgica",
+      "Reino Unido de la Gran Bretaña e Irlanda del Norte"
+    ],
+    "top_state": [
+      "Estado de México",
+      "Jalisco",
+      "San Luis Potosí"
+    ]
+  },
+  "6": {
+    "id": 6,
+    "countries": [
+      "Otro origen"
+    ],
+    "states": [
+      "Sonora",
+      "Zacatecas"
+    ],
+    "n_members": 3,
+    "total_ied_internal": 22846.34,
+    "top_country": [
+      "Otro origen"
+    ],
+    "top_state": [
+      "Sonora",
+      "Zacatecas"
+    ]
+  }
+}
