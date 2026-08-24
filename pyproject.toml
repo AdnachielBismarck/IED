@@ -1,0 +1,15 @@
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+include = "\\.pyi?$"
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | data
+)/
+'''
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

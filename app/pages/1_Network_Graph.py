@@ -1,25 +1,28 @@
-# =============================================================================
 # PÁGINA 1 — ANÁLISIS DE RED · IED Intelligence Platform
-# RUTAS: IED/app/pages/ → .parent.parent.parent = IED/
-# =============================================================================
+# RUTAS: IED/app/pages/ a .parent.parent.parent = IED/
 
 import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import json
-import pickle
 import networkx as nx
 from pathlib import Path
+from app.shared import (
+    apply_product_styles,
+    render_header,
+    render_provenance,
+    render_sidebar,
+)
 
 st.set_page_config(
-    page_title="Network Graph · IED Mexico",
+    page_title="Red de inversión · IED México",
     layout="wide",
-    page_icon="🕸️",
     initial_sidebar_state="auto",
 )
 
-st.markdown("""
+st.markdown(
+    """
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
@@ -192,11 +195,18 @@ st.markdown("""
     margin-top: 0.6rem;
   }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
+apply_product_styles()
 
-# ── Rutas ─────────────────────────────────────────────────────────────────────
+# Rutas
 BASE = Path(__file__).resolve().parent.parent.parent
 PROC = BASE / "data" / "processed" / "proc_2"
+with open(PROC / "metadata.json", encoding="utf-8") as f:
+    METADATA = json.load(f)
+PERIOD_LABEL = METADATA["period_label"]
+
 
 def _load(name):
     p = PROC / name
@@ -206,6 +216,7 @@ def _load(name):
     if c.exists():
         return pd.read_csv(c, low_memory=False)
     raise FileNotFoundError(f"{name} no encontrado en {PROC}")
+
 
 @st.cache_data
 def load_data():
@@ -217,40 +228,58 @@ def load_data():
         stats = json.load(f)
     return nodes, edges, communities, stats
 
+
 @st.cache_data
 def get_layout():
-    """Calcula posiciones x,y con spring_layout. Cacheado para no recalcular."""
-    with open(PROC / "main_graph.pkl", "rb") as f:
-        G = pickle.load(f)
+    """Reconstruye el grafo desde Parquet y calcula un layout reproducible."""
+    edge_data = _load("network_edges.parquet")
+    G = nx.Graph()
+    for row in edge_data.itertuples(index=False):
+        G.add_edge(row.source, row.target, weight=float(row.weight))
     pos = nx.spring_layout(G, weight="weight", seed=42, k=2.5)
     return {n: (float(x), float(y)) for n, (x, y) in pos.items()}
+
 
 nodes, edges, communities, stats = load_data()
 pos = get_layout()
 
-# ── Nombres y descripciones de comunidades ────────────────────────────────────
+# Nombres y descripciones de comunidades
 COMM_NAMES = {
-    "0": ("Bloque Norteamericano y Tecnológico",
-          "Agrupa a EE.UU., Suiza e Irlanda junto con los estados de mayor diversificación "
-          "tecnológica y manufacturera. Domina en volumen absoluto y centralidad de red."),
-    "1": ("Capital Financiero Especializado",
-          "Flujos de capital provenientes de centros financieros internacionales "
-          "(Luxemburgo, Hong Kong) hacia estados con perfil de inversión concentrada y no industrial."),
-    "2": ("Bloque Europeo-Latino y Turismo",
-          "España, Canadá e Italia articulan inversión hacia estados con vocación industrial "
-          "y turística. Coahuila, Querétaro y Quintana Roo son los receptores principales."),
-    "3": ("Corredor Industrial del Noreste",
-          "Países Bajos, Corea del Sur y Argentina invierten principalmente en Nuevo León y Veracruz, "
-          "estados con infraestructura industrial y logística consolidada."),
-    "4": ("Ecosistema Automotriz Japonés",
-          "Japón concentra su inversión en el clúster automotriz del Bajío: "
-          "Guanajuato, Aguascalientes y Morelos. Alta especialización sectorial."),
-    "5": ("Bloque Europeo Diversificado",
-          "Alemania, Reino Unido y Francia diversifican flujos hacia el Estado de México, "
-          "Jalisco y San Luis Potosí. Sectores manufacturero, retail y servicios."),
-    "6": ("Origen Difuso / Minería",
-          "Origen no clasificado o diverso, con presencia predominante en Sonora y Zacatecas. "
-          "Patrón consistente con inversión en sectores extractivos y mineros."),
+    "0": (
+        "Bloque Norteamericano y Tecnológico",
+        "Agrupa a EE.UU., Suiza e Irlanda junto con los estados de mayor diversificación "
+        "tecnológica y manufacturera. Domina en volumen absoluto y centralidad de red.",
+    ),
+    "1": (
+        "Capital Financiero Especializado",
+        "Flujos de capital provenientes de centros financieros internacionales "
+        "(Luxemburgo, Hong Kong) hacia estados con perfil de inversión concentrada y no industrial.",
+    ),
+    "2": (
+        "Bloque Europeo-Latino y Turismo",
+        "España, Canadá e Italia articulan inversión hacia estados con vocación industrial "
+        "y turística. Coahuila, Querétaro y Quintana Roo son los receptores principales.",
+    ),
+    "3": (
+        "Corredor Industrial del Noreste",
+        "Países Bajos, Corea del Sur y Argentina invierten principalmente en Nuevo León y Veracruz, "
+        "estados con infraestructura industrial y logística consolidada.",
+    ),
+    "4": (
+        "Ecosistema Automotriz Japonés",
+        "Japón concentra su inversión en el clúster automotriz del Bajío: "
+        "Guanajuato, Aguascalientes y Morelos. Alta especialización sectorial.",
+    ),
+    "5": (
+        "Bloque Europeo Diversificado",
+        "Alemania, Reino Unido y Francia diversifican flujos hacia el Estado de México, "
+        "Jalisco y San Luis Potosí. Sectores manufacturero, retail y servicios.",
+    ),
+    "6": (
+        "Origen Difuso / Minería",
+        "Origen no clasificado o diverso, con presencia predominante en Sonora y Zacatecas. "
+        "Patrón consistente con inversión en sectores extractivos y mineros.",
+    ),
 }
 
 COMM_COLORS = [
@@ -263,65 +292,60 @@ COMM_COLORS = [
     "#8b949e",  # 6 — gris
 ]
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown("## IED Intelligence")
-    st.markdown("**Mexico · 2006–2025**")
-    st.markdown("---")
-    st.markdown(
-        "<p style='font-size:0.78rem;color:#8b949e;'>Fuente: Secretaría de Economía · DGIE<br>"
-        "Datos en USD Millones corrientes</p>",
-        unsafe_allow_html=True,
-    )
-    st.markdown("---")
-    st.markdown(
-        "<p style='font-size:0.90rem;color:#484f58;'>Diseñado por Adnachiel Avendaño</p>",
-        unsafe_allow_html=True,
-    )
+# Sidebar
+render_sidebar()
 
-# ── Header ────────────────────────────────────────────────────────────────────
-st.markdown(
-    "<h1 style='font-size:1.6rem;margin-bottom:0.2rem;'>"
-    "¿Cómo se organizan los países inversores y los estados en ecosistemas económicos?</h1>",
-    unsafe_allow_html=True,
-)
-st.markdown(
-    "<p style='font-size:0.9rem;color:#8b949e;margin-top:0;margin-bottom:1rem;'>"
-    "Network Analysis — Estructura de vínculos País ↔ Estado · Comunidades · Nodos estratégicos</p>",
-    unsafe_allow_html=True,
+# Header
+render_header(
+    "Red de inversión",
+    "Relaciones entre países de origen y estados receptores",
+    "Explora conectividad, posición de puente y comunidades estadísticas dentro de la red de IED.",
 )
 
-# ── KPIs ──────────────────────────────────────────────────────────────────────
+# KPIs
 k1, k2, k3, k4 = st.columns(4)
 with k1:
-    st.markdown(f"""<div class="kpi-card">
+    st.markdown(
+        f"""<div class="kpi-card">
       <p class="kpi-val">{stats['n_nodes']}</p>
       <p class="kpi-label">Nodos en la red</p>
       <p class="kpi-sub">Países + estados</p>
-    </div>""", unsafe_allow_html=True)
+    </div>""",
+        unsafe_allow_html=True,
+    )
 with k2:
-    st.markdown(f"""<div class="kpi-card">
+    st.markdown(
+        f"""<div class="kpi-card">
       <p class="kpi-val">{stats['n_edges']}</p>
       <p class="kpi-label">Vínculos económicos</p>
       <p class="kpi-sub">Flujos IED activos</p>
-    </div>""", unsafe_allow_html=True)
+    </div>""",
+        unsafe_allow_html=True,
+    )
 with k3:
-    st.markdown(f"""<div class="kpi-card">
+    st.markdown(
+        f"""<div class="kpi-card">
       <p class="kpi-val">{stats['n_communities']}</p>
       <p class="kpi-label">Comunidades detectadas</p>
       <p class="kpi-sub">Algoritmo Louvain</p>
-    </div>""", unsafe_allow_html=True)
+    </div>""",
+        unsafe_allow_html=True,
+    )
 with k4:
-    st.markdown(f"""<div class="kpi-card">
+    st.markdown(
+        f"""<div class="kpi-card">
       <p class="kpi-val">{stats['modularity']:.3f}</p>
       <p class="kpi-label">Modularidad de red</p>
       <p class="kpi-sub">Densidad: {stats['density']:.3f}</p>
-    </div>""", unsafe_allow_html=True)
+    </div>""",
+        unsafe_allow_html=True,
+    )
 
 st.markdown("<div style='margin-top:1.2rem;'></div>", unsafe_allow_html=True)
 
-# ── Introducción ──────────────────────────────────────────────────────────────
-st.markdown("""<div class="intro-box"><p>
+# Introducción
+st.markdown(
+    """<div class="intro-box"><p>
   Una <strong>red de inversión</strong> representa a países y estados como nodos, y los flujos
   de IED como aristas que los conectan. Este enfoque revela patrones que una tabla no puede mostrar:
   qué nodos actúan como <strong>puentes estratégicos</strong> entre múltiples fuentes de capital,
@@ -329,9 +353,11 @@ st.markdown("""<div class="intro-box"><p>
   <strong>ecosistemas económicos</strong> con lógica territorial y sectorial.
   El tamaño de cada nodo refleja su <strong>Hub Score</strong> —
   una medida de centralidad que combina volumen, diversificación y posición estructural en la red.
-</p></div>""", unsafe_allow_html=True)
+</p></div>""",
+    unsafe_allow_html=True,
+)
 
-# ── Filtros dentro de la página ───────────────────────────────────────────────
+# Filtros dentro de la página
 st.markdown("<div class='filter-box'>", unsafe_allow_html=True)
 fc1, fc2, fc3 = st.columns(3)
 with fc1:
@@ -343,7 +369,10 @@ with fc1:
 with fc2:
     min_weight = st.slider(
         "IED mínima por vínculo (USD M)",
-        0, 5000, 50, step=50,
+        0,
+        5000,
+        50,
+        step=50,
         key="min_weight",
     )
 with fc3:
@@ -355,7 +384,7 @@ with fc3:
     )
 st.markdown("</div>", unsafe_allow_html=True)
 
-# ── Construir red ─────────────────────────────────────────────────────────────
+# Construir red
 edges_filt = edges[edges["weight"] >= min_weight].copy()
 nodes_filt = nodes.copy()
 if node_type_filter == "Solo países":
@@ -371,14 +400,17 @@ for _, row in edges_filt.iterrows():
     x0, y0 = pos[row["source"]]
     x1, y1 = pos[row["target"]]
     opacity = min(0.55, max(0.04, np.log1p(row["weight"]) / 15))
-    width   = max(0.3,  np.log1p(row["weight"]) / 8)
-    edge_traces.append(go.Scatter(
-        x=[x0, x1, None], y=[y0, y1, None],
-        mode="lines",
-        line=dict(width=width, color=f"rgba(140,140,190,{opacity:.2f})"),
-        hoverinfo="none",
-        showlegend=False,
-    ))
+    width = max(0.3, np.log1p(row["weight"]) / 8)
+    edge_traces.append(
+        go.Scatter(
+            x=[x0, x1, None],
+            y=[y0, y1, None],
+            mode="lines",
+            line=dict(width=width, color=f"rgba(140,140,190,{opacity:.2f})"),
+            hoverinfo="none",
+            showlegend=False,
+        )
+    )
 
 # Nodos
 node_x, node_y, node_text, node_color, node_size, hover_texts = [], [], [], [], [], []
@@ -400,9 +432,13 @@ for _, row in nodes_filt.iterrows():
 
     node_size.append(max(7, min(32, float(row["hub_score"]) * 0.5 + 7)))
 
-    comm_id  = str(int(row["community"])) if pd.notna(row["community"]) else "N/A"
-    comm_name= COMM_NAMES.get(comm_id, ("Sin clasificar", ""))[0] if comm_id != "N/A" else "N/A"
-    tipo     = "País" if row["node_type"] == "country" else "Estado"
+    comm_id = str(int(row["community"])) if pd.notna(row["community"]) else "N/A"
+    comm_name = (
+        COMM_NAMES.get(comm_id, ("Sin clasificar", ""))[0]
+        if comm_id != "N/A"
+        else "N/A"
+    )
+    tipo = "País" if row["node_type"] == "country" else "Estado"
     hover_texts.append(
         f"<b>{row['node']}</b><br>"
         f"Tipo: {tipo}<br>"
@@ -429,7 +465,8 @@ else:
     )
 
 node_trace = go.Scatter(
-    x=node_x, y=node_y,
+    x=node_x,
+    y=node_y,
     mode="markers+text",
     text=node_text,
     textposition="top center",
@@ -441,7 +478,7 @@ node_trace = go.Scatter(
 
 fig_net = go.Figure(data=edge_traces + [node_trace])
 fig_net.update_layout(
-    title=f"Red IED País ↔ Estado — {len(nodes_filt)} nodos · {len(edges_filt)} vínculos · IED ≥ ${min_weight} M",
+    title=f"Red IED País - Estado — {len(nodes_filt)} nodos · {len(edges_filt)} vínculos · IED ≥ ${min_weight} M",
     template="plotly_dark",
     height=620,
     showlegend=False,
@@ -449,14 +486,25 @@ fig_net.update_layout(
     plot_bgcolor="#161b22",
     font=dict(family="IBM Plex Sans, sans-serif", color="#8b949e", size=11),
     title_font=dict(family="IBM Plex Sans, sans-serif", color="#e6edf3", size=13),
-    xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, linecolor="#30363d"),
-    yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, linecolor="#30363d"),
+    xaxis=dict(
+        showgrid=False, zeroline=False, showticklabels=False, linecolor="#30363d"
+    ),
+    yaxis=dict(
+        showgrid=False, zeroline=False, showticklabels=False, linecolor="#30363d"
+    ),
     margin=dict(l=0, r=0, t=45, b=0),
 )
-st.plotly_chart(fig_net, use_container_width=True)
+st.plotly_chart(fig_net, width="stretch")
+st.download_button(
+    "Descargar vínculos filtrados",
+    data=edges_filt.to_csv(index=False).encode("utf-8-sig"),
+    file_name="red_ied_filtrada.csv",
+    mime="text/csv",
+)
 
-# ── Leyenda interpretativa ────────────────────────────────────────────────────
-st.markdown("""
+# Leyenda interpretativa
+st.markdown(
+    """
 <div class="legend-box">
   <span style="font-size:0.75rem;color:#8b949e;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Cómo leer esta red:</span>
   <span class="legend-item">
@@ -484,13 +532,15 @@ st.markdown("""
   Comunidades detectadas con algoritmo Louvain · Modularidad {modularity:.3f} indica estructura comunitaria {mod_desc}.
 </p>
 """.format(
-    modularity=stats["modularity"],
-    mod_desc="bien definida" if stats["modularity"] > 0.4 else "moderada",
-), unsafe_allow_html=True)
+        modularity=stats["modularity"],
+        mod_desc="bien definida" if stats["modularity"] > 0.4 else "moderada",
+    ),
+    unsafe_allow_html=True,
+)
 
 st.markdown("<div style='margin-top:1.6rem;'></div>", unsafe_allow_html=True)
 
-# ── Comunidades económicas ────────────────────────────────────────────────────
+# Comunidades económicas
 st.markdown(
     "<h2 style='font-size:1.2rem;color:#e6edf3;margin-bottom:0.3rem;'>"
     "Ecosistemas económicos detectados</h2>",
@@ -508,20 +558,27 @@ comm_items = list(communities.items())
 n_cols = min(4, len(comm_items))
 
 for row_start in range(0, len(comm_items), n_cols):
-    row_items = comm_items[row_start:row_start + n_cols]
+    row_items = comm_items[row_start : row_start + n_cols]
     cols = st.columns(len(row_items))
     for col, (comm_id, profile) in zip(cols, row_items):
-        cid   = str(int(comm_id)) if str(comm_id).isdigit() else comm_id
+        cid = str(int(comm_id)) if str(comm_id).isdigit() else comm_id
         color = COMM_COLORS[int(cid) % len(COMM_COLORS)]
-        name, desc = COMM_NAMES.get(cid, (f"Comunidad {cid}", "Sin descripción disponible."))
-        countries_str = ", ".join(profile["top_country"][:3]) if profile["top_country"] else "N/A"
-        states_str    = ", ".join(profile["top_state"][:3])   if profile["top_state"]   else "N/A"
-        n_paises      = len(profile.get("countries", []))
-        n_estados     = len(profile.get("states", []))
-        ied_int       = profile.get("total_ied_internal", 0)
+        name, desc = COMM_NAMES.get(
+            cid, (f"Comunidad {cid}", "Sin descripción disponible.")
+        )
+        countries_str = (
+            ", ".join(profile["top_country"][:3]) if profile["top_country"] else "N/A"
+        )
+        states_str = (
+            ", ".join(profile["top_state"][:3]) if profile["top_state"] else "N/A"
+        )
+        n_paises = len(profile.get("countries", []))
+        n_estados = len(profile.get("states", []))
+        ied_int = profile.get("total_ied_internal", 0)
 
         with col:
-            st.markdown(f"""
+            st.markdown(
+                f"""
             <div class="comm-card" style="border-left: 3px solid {color};">
               <p class="comm-tag" style="color:{color};">Ecosistema {int(cid)+1}</p>
               <p class="comm-name" style="color:{color};">{name}</p>
@@ -530,11 +587,13 @@ for row_start in range(0, len(comm_items), n_cols):
               <p class="comm-members"><strong style="color:#e6edf3;">Estados:</strong> {states_str}</p>
               <p class="comm-ied" style="color:{color};">IED interna: ${ied_int:,.0f} M</p>
               <p class="comm-desc">{desc}</p>
-            </div>""", unsafe_allow_html=True)
+            </div>""",
+                unsafe_allow_html=True,
+            )
 
 st.markdown("<div style='margin-top:1.6rem;'></div>", unsafe_allow_html=True)
 
-# ── Top Hubs ──────────────────────────────────────────────────────────────────
+# Top Hubs
 st.markdown(
     "<h2 style='font-size:1.2rem;color:#e6edf3;margin-bottom:0.3rem;'>"
     "Nodos más estratégicos de la red</h2>",
@@ -558,21 +617,28 @@ with h1:
     )
     top_states = (
         nodes[nodes["node_type"] == "state"]
-        .nlargest(10, "hub_score")
-        [["node", "hub_score", "betweenness", "eigenvector", "community"]]
+        .nlargest(10, "hub_score")[
+            ["node", "hub_score", "betweenness", "eigenvector", "community"]
+        ]
         .copy()
     )
     # Agregar nombre de comunidad
     top_states["Ecosistema"] = top_states["community"].apply(
         lambda c: COMM_NAMES.get(str(int(c)), ("—", ""))[0] if pd.notna(c) else "—"
     )
-    top_states = top_states.rename(columns={
-        "node":        "Estado",
-        "hub_score":   "Hub Score",
-        "betweenness": "Betweenness",
-        "eigenvector": "Eigenvector",
-    }).drop(columns=["community"]).round(3)
-    st.dataframe(top_states, use_container_width=True, hide_index=True)
+    top_states = (
+        top_states.rename(
+            columns={
+                "node": "Estado",
+                "hub_score": "Hub Score",
+                "betweenness": "Betweenness",
+                "eigenvector": "Eigenvector",
+            }
+        )
+        .drop(columns=["community"])
+        .round(3)
+    )
+    st.dataframe(top_states, width="stretch", hide_index=True)
 
 with h2:
     st.markdown(
@@ -582,18 +648,21 @@ with h2:
     )
     top_countries = (
         nodes[nodes["node_type"] == "country"]
-        .nlargest(10, "hub_score")
-        [["node", "hub_score", "betweenness", "eigenvector", "total_ied"]]
-        .rename(columns={
-            "node":        "País",
-            "hub_score":   "Hub Score",
-            "betweenness": "Betweenness",
-            "eigenvector": "Eigenvector",
-            "total_ied":   "IED Total (M)",
-        })
+        .nlargest(10, "hub_score")[
+            ["node", "hub_score", "betweenness", "eigenvector", "total_ied"]
+        ]
+        .rename(
+            columns={
+                "node": "País",
+                "hub_score": "Hub Score",
+                "betweenness": "Betweenness",
+                "eigenvector": "Eigenvector",
+                "total_ied": "IED Total (M)",
+            }
+        )
         .round(3)
     )
-    st.dataframe(top_countries, use_container_width=True, hide_index=True)
+    st.dataframe(top_countries, width="stretch", hide_index=True)
 
 st.markdown(
     "<p class='method-note'>Hub Score: índice compuesto de centralidad estructural (volumen IED + betweenness + eigenvector) · "
@@ -602,3 +671,4 @@ st.markdown(
     "Fuente: Secretaría de Economía · DGIE · Cálculo: NetworkX</p>",
     unsafe_allow_html=True,
 )
+render_provenance()

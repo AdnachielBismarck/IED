@@ -1,23 +1,28 @@
-# =============================================================================
 # PÁGINA 3 — RISK & DEPENDENCY · IED Intelligence Platform
-# RUTAS: IED/app/pages/ → .parent.parent.parent = IED/
-# =============================================================================
+# RUTAS: IED/app/pages/ a .parent.parent.parent = IED/
 
 import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
+import json
 from pathlib import Path
+from app.shared import (
+    apply_product_styles,
+    render_header,
+    render_provenance,
+    render_sidebar,
+)
 
 st.set_page_config(
-    page_title="Risk Analysis · IED Mexico",
+    page_title="Riesgo y dependencia · IED México",
     layout="wide",
-    page_icon="⚠️",
     initial_sidebar_state="auto",
 )
 
-st.markdown("""
+st.markdown(
+    """
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
@@ -174,11 +179,18 @@ st.markdown("""
     border-bottom: 1px solid var(--border-subtle);
   }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
+apply_product_styles()
 
-# ── Rutas ─────────────────────────────────────────────────────────────────────
+# Rutas
 BASE = Path(__file__).resolve().parent.parent.parent
 PROC = BASE / "data" / "processed" / "proc_2"
+with open(PROC / "metadata.json", encoding="utf-8") as f:
+    METADATA = json.load(f)
+PERIOD_LABEL = METADATA["period_label"]
+
 
 def _load(name):
     p = PROC / name
@@ -189,6 +201,7 @@ def _load(name):
         return pd.read_csv(c, low_memory=False)
     raise FileNotFoundError(f"{name} no encontrado en {PROC}")
 
+
 @st.cache_data
 def load_data():
     return (
@@ -198,9 +211,10 @@ def load_data():
         _load("investment_by_state.parquet"),
     )
 
+
 scores, ctry_p, cs_raw, states = load_data()
 
-# ── Helpers de layout ─────────────────────────────────────────────────────────
+# Helpers de layout
 # PLOT_LAYOUT sin xaxis/yaxis · LEGEND sin font · para evitar colisiones
 PLOT_LAYOUT = dict(
     template="plotly_dark",
@@ -211,40 +225,25 @@ PLOT_LAYOUT = dict(
 )
 XAXIS_BASE = dict(gridcolor="#21262d", linecolor="#30363d")
 YAXIS_BASE = dict(gridcolor="#21262d", linecolor="#30363d")
-LEGEND_H   = dict(bgcolor="rgba(0,0,0,0)", bordercolor="#30363d", orientation="h", y=-0.22)
-LEGEND_V   = dict(bgcolor="rgba(0,0,0,0)", bordercolor="#30363d")
+LEGEND_H = dict(
+    bgcolor="rgba(0,0,0,0)", bordercolor="#30363d", orientation="h", y=-0.22
+)
+LEGEND_V = dict(bgcolor="rgba(0,0,0,0)", bordercolor="#30363d")
 MARGIN_STD = dict(t=45, b=45, l=10, r=10)
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown("## IED Intelligence")
-    st.markdown("**Mexico · 2006–2025**")
-    st.markdown("---")
-    st.markdown(
-        "<p style='font-size:0.78rem;color:#8b949e;'>Fuente: Secretaría de Economía · DGIE<br>"
-        "Datos en USD Millones corrientes</p>",
-        unsafe_allow_html=True,
-    )
-    st.markdown("---")
-    st.markdown(
-        "<p style='font-size:0.90rem;color:#484f58;'>Diseñado por Adnachiel Avendaño</p>",
-        unsafe_allow_html=True,
-    )
+# Sidebar
+render_sidebar()
 
-# ── Header ────────────────────────────────────────────────────────────────────
-st.markdown(
-    "<h1 style='font-size:1.6rem;margin-bottom:0.2rem;'>"
-    "¿Qué estados y relaciones representan vulnerabilidades estructurales ante shocks externos?</h1>",
-    unsafe_allow_html=True,
-)
-st.markdown(
-    "<p style='font-size:0.9rem;color:#8b949e;margin-top:0;margin-bottom:1rem;'>"
-    "Risk & Dependency — Concentración de origen · Opacidad de datos · Estabilidad histórica</p>",
-    unsafe_allow_html=True,
+# Header
+render_header(
+    "Riesgo y dependencia",
+    "Exposición territorial ante concentración, opacidad y volatilidad",
+    "Compara vulnerabilidades estructurales y consulta los factores que condicionan cada indicador.",
 )
 
-# ── Introducción: tres tipos de riesgo ────────────────────────────────────────
-st.markdown("""
+# Introducción: tres tipos de riesgo
+st.markdown(
+    """
 <div class="risk-types">
   <div class="risk-type-item" style="border-top:2px solid #f85149;">
     <p class="rt-title" style="color:#f85149;">Riesgo de Dependencia</p>
@@ -265,55 +264,70 @@ st.markdown("""
     la planificación de infraestructura y política de atracción.</p>
   </div>
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
-# ── KPIs ──────────────────────────────────────────────────────────────────────
+# KPIs
 k1, k2, k3, k4 = st.columns(4)
 with k1:
     n = int((scores["dependency_score"] > 60).sum())
-    st.markdown(f"""<div class="kpi-card">
+    st.markdown(
+        f"""<div class="kpi-card">
       <p class="kpi-val">{n}</p>
       <p class="kpi-label">Alta dependencia</p>
       <p class="kpi-sub">Dependency score &gt; 60</p>
-    </div>""", unsafe_allow_html=True)
+    </div>""",
+        unsafe_allow_html=True,
+    )
 with k2:
     n = int((scores["observability_risk"] > 50).sum())
-    st.markdown(f"""<div class="kpi-card amber">
+    st.markdown(
+        f"""<div class="kpi-card amber">
       <p class="kpi-val">{n}</p>
       <p class="kpi-label">Alta opacidad</p>
       <p class="kpi-sub">Observability risk &gt; 50%</p>
-    </div>""", unsafe_allow_html=True)
+    </div>""",
+        unsafe_allow_html=True,
+    )
 with k3:
     n = int((scores["stability_index"] < 30).sum())
-    st.markdown(f"""<div class="kpi-card amber">
+    st.markdown(
+        f"""<div class="kpi-card amber">
       <p class="kpi-val">{n}</p>
       <p class="kpi-label">Baja estabilidad</p>
       <p class="kpi-sub">Stability index &lt; 30</p>
-    </div>""", unsafe_allow_html=True)
+    </div>""",
+        unsafe_allow_html=True,
+    )
 with k4:
     n = int((scores["nearshoring_score"] > 30).sum())
-    st.markdown(f"""<div class="kpi-card blue">
+    st.markdown(
+        f"""<div class="kpi-card blue">
       <p class="kpi-val">{n}</p>
       <p class="kpi-label">Señal nearshoring</p>
       <p class="kpi-sub">Nearshoring score &gt; 30</p>
-    </div>""", unsafe_allow_html=True)
+    </div>""",
+        unsafe_allow_html=True,
+    )
 
 st.markdown("<div style='margin-top:1.2rem;'></div>", unsafe_allow_html=True)
 
-# ── Tabs ──────────────────────────────────────────────────────────────────────
+# Tabs
 tab1, tab2, tab3 = st.tabs(["Mapa de Riesgo", "Dependencia por País", "Rankings"])
 
-# =============================================================================
 # TAB 1 — MAPA DE RIESGO
-# =============================================================================
 with tab1:
-    st.markdown("""<div class="intro-box"><p>
+    st.markdown(
+        """<div class="intro-box"><p>
       Cada estado se posiciona según su <strong>Dependencia</strong> (concentración en un origen)
       y su <strong>Opacidad</strong> (proporción de registros confidenciales).
       El tamaño del nodo refleja el <strong>Stability Index</strong> — estados más grandes
       tienen flujos más predecibles. El color indica el Score Estratégico global.
       Los estados en el cuadrante superior derecho concentran los tres tipos de riesgo simultáneamente.
-    </p></div>""", unsafe_allow_html=True)
+    </p></div>""",
+        unsafe_allow_html=True,
+    )
 
     col_a, col_b = st.columns([2, 1])
 
@@ -329,46 +343,61 @@ with tab1:
             height=500,
             color_continuous_scale="RdYlGn",
             labels={
-                "dependency_score":    "Dependencia",
-                "observability_risk":  "Opacidad (%)",
-                "strategic_score":     "Score Estratégico",
-                "stability_index":     "Estabilidad",
+                "dependency_score": "Dependencia",
+                "observability_risk": "Opacidad (%)",
+                "strategic_score": "Score Estratégico",
+                "stability_index": "Estabilidad",
             },
         )
         fig_r.add_hrect(y0=50, y1=100, fillcolor="rgba(248,81,73,0.04)", line_width=0)
         fig_r.add_vrect(x0=60, x1=100, fillcolor="rgba(248,81,73,0.04)", line_width=0)
         fig_r.add_annotation(
-            x=78, y=78, text="Zona de riesgo alto",
-            showarrow=False, font=dict(size=9, color="rgba(248,81,73,0.55)"),
+            x=78,
+            y=78,
+            text="Zona de riesgo alto",
+            showarrow=False,
+            font=dict(size=9, color="rgba(248,81,73,0.55)"),
         )
         fig_r.add_annotation(
-            x=15, y=15, text="Zona de menor riesgo",
-            showarrow=False, font=dict(size=9, color="rgba(63,185,80,0.55)"),
+            x=15,
+            y=15,
+            text="Zona de menor riesgo",
+            showarrow=False,
+            font=dict(size=9, color="rgba(63,185,80,0.55)"),
         )
         fig_r.update_traces(textposition="top center", textfont_size=7)
         fig_r.update_layout(
             **PLOT_LAYOUT,
             title="Estados en el cuadrante superior derecho acumulan dependencia y opacidad simultáneamente",
             height=500,
-            xaxis=dict(**XAXIS_BASE, title="Dependencia (score)", tickfont=dict(size=10)),
-            yaxis=dict(**YAXIS_BASE, title="Opacidad — % registros confidenciales", tickfont=dict(size=10)),
+            xaxis=dict(
+                **XAXIS_BASE, title="Dependencia (score)", tickfont=dict(size=10)
+            ),
+            yaxis=dict(
+                **YAXIS_BASE,
+                title="Opacidad — % registros confidenciales",
+                tickfont=dict(size=10),
+            ),
             coloraxis_colorbar=dict(title="Score\nEstratégico", thickness=12, len=0.5),
             margin=MARGIN_STD,
         )
-        st.plotly_chart(fig_r, use_container_width=True)
+        st.plotly_chart(fig_r, width="stretch")
 
         # Identificar el patrón más preocupante
         alto_riesgo = scores[
             (scores["dependency_score"] > 60) & (scores["observability_risk"] > 50)
         ]["estado"].tolist()
         if alto_riesgo:
-            st.markdown(f"""<div class="insight-box">
+            st.markdown(
+                f"""<div class="insight-box">
               <p class="insight-title">Patrón de mayor preocupación</p>
               <p><strong>{", ".join(alto_riesgo)}</strong> presentan simultáneamente
               alta dependencia de un solo origen <em>y</em> alta opacidad de datos,
               lo que combina vulnerabilidad estructural con limitada capacidad de monitoreo.
               Son los estados que requieren atención prioritaria en política de diversificación.</p>
-            </div>""", unsafe_allow_html=True)
+            </div>""",
+                unsafe_allow_html=True,
+            )
 
         st.markdown(
             "<p class='method-note'>Tamaño = Stability Index (mayor = más predecible) · "
@@ -385,59 +414,76 @@ with tab1:
             "Clasificación por nivel de riesgo</p>",
             unsafe_allow_html=True,
         )
-        rt = scores[["estado", "dependency_score", "observability_risk", "strategic_score"]].copy()
+        rt = scores[
+            ["estado", "dependency_score", "observability_risk", "strategic_score"]
+        ].copy()
         rt["Riesgo"] = rt.apply(
-            lambda r: "Alto" if (r["dependency_score"] > 60 or r["observability_risk"] > 50)
-            else ("Medio" if (r["dependency_score"] > 35 or r["observability_risk"] > 30)
-            else "Bajo"),
+            lambda r: (
+                "Alto"
+                if (r["dependency_score"] > 60 or r["observability_risk"] > 50)
+                else (
+                    "Medio"
+                    if (r["dependency_score"] > 35 or r["observability_risk"] > 30)
+                    else "Bajo"
+                )
+            ),
             axis=1,
         )
         tabla_r = (
-            rt.sort_values("dependency_score", ascending=False)
-            [["estado", "Riesgo", "dependency_score", "observability_risk"]]
-            .rename(columns={
-                "estado":             "Estado",
-                "dependency_score":   "Dependencia",
-                "observability_risk": "Opacidad %",
-            })
+            rt.sort_values("dependency_score", ascending=False)[
+                ["estado", "Riesgo", "dependency_score", "observability_risk"]
+            ]
+            .rename(
+                columns={
+                    "estado": "Estado",
+                    "dependency_score": "Dependencia",
+                    "observability_risk": "Opacidad %",
+                }
+            )
             .round(1)
         )
-        st.dataframe(tabla_r, use_container_width=True, hide_index=True, height=440)
+        st.dataframe(tabla_r, width="stretch", hide_index=True, height=440)
 
-# =============================================================================
 # TAB 2 — DEPENDENCIA POR PAÍS
-# =============================================================================
 with tab2:
-    st.markdown("""<div class="intro-box"><p>
+    st.markdown(
+        """<div class="intro-box"><p>
       Analiza la concentración territorial de cada país inversor: cuántos estados activa,
       qué volumen total acumula y cómo se distribuye geográficamente su inversión.
       Un país con alto HHI concentra su inversión en pocos estados, creando dependencia bilateral.
-    </p></div>""", unsafe_allow_html=True)
+    </p></div>""",
+        unsafe_allow_html=True,
+    )
 
     top_inv_c = ctry_p.nlargest(20, "total_ied")
 
     # Barras horizontales — Top 20 países por IED acumulada
     fig_c = px.bar(
         top_inv_c.sort_values("total_ied"),
-        x="total_ied", y="country", orientation="h",
-        template="plotly_dark", height=520,
+        x="total_ied",
+        y="country",
+        orientation="h",
+        template="plotly_dark",
+        height=520,
         color="concentration_hhi",
         color_continuous_scale="RdYlGn_r",
         labels={
-            "total_ied":          "IED Total (USD M)",
-            "country":            "",
-            "concentration_hhi":  "Concentración HHI",
+            "total_ied": "IED Total (USD M)",
+            "country": "",
+            "concentration_hhi": "Concentración HHI",
         },
     )
     fig_c.update_layout(
         **PLOT_LAYOUT,
         title="Los países con mayor volumen no siempre tienen la mayor concentración territorial",
-        xaxis=dict(**XAXIS_BASE, title="IED Acumulada (USD Millones)", tickfont=dict(size=10)),
+        xaxis=dict(
+            **XAXIS_BASE, title="IED Acumulada (USD Millones)", tickfont=dict(size=10)
+        ),
         yaxis=dict(**YAXIS_BASE, title="", tickfont=dict(size=10)),
         coloraxis_colorbar=dict(title="HHI", thickness=12, len=0.5),
         margin=dict(t=45, b=30, l=10, r=10),
     )
-    st.plotly_chart(fig_c, use_container_width=True)
+    st.plotly_chart(fig_c, width="stretch")
     st.markdown(
         "<p class='method-note'>HHI (Herfindahl-Hirschman Index): mide concentración geográfica · "
         "HHI cercano a 1 = inversión concentrada en pocos estados · "
@@ -445,7 +491,6 @@ with tab2:
         "Fuente: Secretaría de Economía · DGIE · Cálculo propio</p>",
         unsafe_allow_html=True,
     )
-
     st.markdown("<div style='margin-top:1.2rem;'></div>", unsafe_allow_html=True)
 
     # Barras de Dependency Score por estado
@@ -454,30 +499,36 @@ with tab2:
         "Dependencia estructural por estado</h3>",
         unsafe_allow_html=True,
     )
-    dep_s    = scores.sort_values("dependency_score", ascending=False)
+    dep_s = scores.sort_values("dependency_score", ascending=False)
     cols_dep = [
         "#f85149" if v > 60 else ("#d29922" if v > 35 else "#3fb950")
         for v in dep_s["dependency_score"].fillna(0)
     ]
 
     fig_dep = go.Figure()
-    fig_dep.add_trace(go.Bar(
-        x=dep_s["estado"],
-        y=dep_s["dependency_score"].fillna(0),
-        marker_color=cols_dep,
-        marker_line_width=0,
-        text=[f"{v:.0f}" for v in dep_s["dependency_score"].fillna(0)],
-        textposition="outside",
-        textfont=dict(size=7, color="#8b949e"),
-    ))
+    fig_dep.add_trace(
+        go.Bar(
+            x=dep_s["estado"],
+            y=dep_s["dependency_score"].fillna(0),
+            marker_color=cols_dep,
+            marker_line_width=0,
+            text=[f"{v:.0f}" for v in dep_s["dependency_score"].fillna(0)],
+            textposition="outside",
+            textfont=dict(size=7, color="#8b949e"),
+        )
+    )
     fig_dep.add_hline(
-        y=60, line_dash="dot", line_color="rgba(248,81,73,0.5)",
+        y=60,
+        line_dash="dot",
+        line_color="rgba(248,81,73,0.5)",
         annotation_text="Umbral alto (60)",
         annotation_position="top right",
         annotation_font=dict(size=8, color="rgba(248,81,73,0.7)"),
     )
     fig_dep.add_hline(
-        y=35, line_dash="dot", line_color="rgba(210,153,34,0.5)",
+        y=35,
+        line_dash="dot",
+        line_color="rgba(210,153,34,0.5)",
         annotation_text="Umbral medio (35)",
         annotation_position="top right",
         annotation_font=dict(size=8, color="rgba(210,153,34,0.7)"),
@@ -491,14 +542,17 @@ with tab2:
         margin=dict(t=45, b=100, l=10, r=80),
         showlegend=False,
     )
-    st.plotly_chart(fig_dep, use_container_width=True)
+    st.plotly_chart(fig_dep, width="stretch")
 
     d1, d2 = st.columns(2)
     with d1:
         fig_stab = px.bar(
             scores.sort_values("stability_index"),
-            x="stability_index", y="estado", orientation="h",
-            template="plotly_dark", height=480,
+            x="stability_index",
+            y="estado",
+            orientation="h",
+            template="plotly_dark",
+            height=480,
             color="stability_index",
             color_continuous_scale="RdYlGn",
             labels={"stability_index": "Stability Index", "estado": ""},
@@ -511,13 +565,15 @@ with tab2:
             coloraxis_showscale=False,
             margin=dict(t=45, b=20, l=10, r=10),
         )
-        st.plotly_chart(fig_stab, use_container_width=True)
+        st.plotly_chart(fig_stab, width="stretch")
 
     with d2:
         fig_obs = px.bar(
             scores.sort_values("observability_risk", ascending=False),
-            x="estado", y="observability_risk",
-            template="plotly_dark", height=480,
+            x="estado",
+            y="observability_risk",
+            template="plotly_dark",
+            height=480,
             color="observability_risk",
             color_continuous_scale="YlOrRd",
             labels={"observability_risk": "Observability Risk (%)", "estado": ""},
@@ -526,13 +582,18 @@ with tab2:
             **PLOT_LAYOUT,
             title="Alta opacidad no implica mayor riesgo — puede reflejar sectores estratégicos",
             xaxis=dict(**XAXIS_BASE, title="", tickangle=45, tickfont=dict(size=7)),
-            yaxis=dict(**YAXIS_BASE, title="Registros confidenciales (%)", tickfont=dict(size=10)),
+            yaxis=dict(
+                **YAXIS_BASE,
+                title="Registros confidenciales (%)",
+                tickfont=dict(size=10),
+            ),
             coloraxis_showscale=False,
             margin=dict(t=45, b=110, l=10, r=10),
         )
-        st.plotly_chart(fig_obs, use_container_width=True)
+        st.plotly_chart(fig_obs, width="stretch")
 
-    st.markdown("""<div class="insight-box amber">
+    st.markdown(
+        """<div class="insight-box amber">
       <p class="insight-title">Nota metodológica — Observability Risk</p>
       <p>Una alta proporción de registros confidenciales no implica necesariamente mayor
       vulnerabilidad económica. En muchos casos refleja la presencia de
@@ -540,7 +601,9 @@ with tab2:
       (energía, defensa, tecnología) que la Secretaría de Economía clasifica como reservados.
       Los estados con alto Observability Risk deben interpretarse con cautela:
       su posición real podría ser mejor o peor que lo que los datos visibles sugieren.</p>
-    </div>""", unsafe_allow_html=True)
+    </div>""",
+        unsafe_allow_html=True,
+    )
 
     st.markdown(
         "<p class='method-note'>Observability Risk = proporción de registros con valor 'C' "
@@ -550,15 +613,16 @@ with tab2:
         unsafe_allow_html=True,
     )
 
-# =============================================================================
 # TAB 3 — RANKINGS
-# =============================================================================
 with tab3:
-    st.markdown("""<div class="intro-box"><p>
+    st.markdown(
+        """<div class="intro-box"><p>
       Los rankings permiten identificar de forma rápida los extremos del sistema:
       los estados con mayor fortaleza estratégica, los que más se benefician del nearshoring
       y los que presentan las vulnerabilidades más pronunciadas.
-    </p></div>""", unsafe_allow_html=True)
+    </p></div>""",
+        unsafe_allow_html=True,
+    )
 
     rk1, rk2 = st.columns(2)
 
@@ -568,36 +632,53 @@ with tab3:
             unsafe_allow_html=True,
         )
         st.dataframe(
-            scores.nlargest(10, "strategic_score")
-            [["estado", "strategic_score", "diversification_score", "nearshoring_score"]]
-            .rename(columns={
-                "estado":                "Estado",
-                "strategic_score":       "Score Estratégico",
-                "diversification_score": "Diversificación",
-                "nearshoring_score":     "Nearshoring",
-            })
+            scores.nlargest(10, "strategic_score")[
+                [
+                    "estado",
+                    "strategic_score",
+                    "diversification_score",
+                    "nearshoring_score",
+                ]
+            ]
+            .rename(
+                columns={
+                    "estado": "Estado",
+                    "strategic_score": "Score Estratégico",
+                    "diversification_score": "Diversificación",
+                    "nearshoring_score": "Nearshoring",
+                }
+            )
             .round(1),
-            use_container_width=True, hide_index=True,
+            width="stretch",
+            hide_index=True,
         )
 
         st.markdown(
             "<p class='ranking-label'>Top 10 — Señal de Nearshoring</p>",
             unsafe_allow_html=True,
         )
-        ns_cols = ["estado", "nearshoring_score", "zone", "us_share_pct", "growth_ratio_2021_24"]
+        ns_cols = [
+            "estado",
+            "nearshoring_score",
+            "zone",
+            "us_share_pct",
+            "growth_ratio_2021_24",
+        ]
         ns_cols_exist = [c for c in ns_cols if c in scores.columns]
         st.dataframe(
-            scores.nlargest(10, "nearshoring_score")
-            [ns_cols_exist]
-            .rename(columns={
-                "estado":              "Estado",
-                "nearshoring_score":   "Score NS",
-                "zone":                "Zona",
-                "us_share_pct":        "% EE.UU.",
-                "growth_ratio_2021_24":"Crec. 21–24%",
-            })
+            scores.nlargest(10, "nearshoring_score")[ns_cols_exist]
+            .rename(
+                columns={
+                    "estado": "Estado",
+                    "nearshoring_score": "Score NS",
+                    "zone": "Zona",
+                    "us_share_pct": "% EE.UU.",
+                    "growth_ratio_2021_24": "Crec. 21–24%",
+                }
+            )
             .round(1),
-            use_container_width=True, hide_index=True,
+            width="stretch",
+            hide_index=True,
         )
 
     with rk2:
@@ -606,35 +687,46 @@ with tab3:
             unsafe_allow_html=True,
         )
         st.dataframe(
-            scores.nlargest(10, "dependency_score")
-            [["estado", "dependency_score", "top_country", "top_country_share"]]
-            .rename(columns={
-                "estado":             "Estado",
-                "dependency_score":   "Dependencia",
-                "top_country":        "País dominante",
-                "top_country_share":  "% dominante",
-            })
+            scores.nlargest(10, "dependency_score")[
+                ["estado", "dependency_score", "top_country", "top_country_share"]
+            ]
+            .rename(
+                columns={
+                    "estado": "Estado",
+                    "dependency_score": "Dependencia",
+                    "top_country": "País dominante",
+                    "top_country_share": "% dominante",
+                }
+            )
             .round(1),
-            use_container_width=True, hide_index=True,
+            width="stretch",
+            hide_index=True,
         )
 
         st.markdown(
             "<p class='ranking-label'>Top 10 — Mayor Opacidad de datos</p>",
             unsafe_allow_html=True,
         )
-        obs_cols = ["estado", "observability_risk", "n_confidential_records", "n_total_records"]
+        obs_cols = [
+            "estado",
+            "observability_risk",
+            "n_confidential_records",
+            "n_total_records",
+        ]
         obs_cols_exist = [c for c in obs_cols if c in scores.columns]
         st.dataframe(
-            scores.nlargest(10, "observability_risk")
-            [obs_cols_exist]
-            .rename(columns={
-                "estado":                  "Estado",
-                "observability_risk":      "Opacidad %",
-                "n_confidential_records":  "Registros C",
-                "n_total_records":         "Total",
-            })
+            scores.nlargest(10, "observability_risk")[obs_cols_exist]
+            .rename(
+                columns={
+                    "estado": "Estado",
+                    "observability_risk": "Opacidad %",
+                    "n_confidential_records": "Registros C",
+                    "n_total_records": "Total",
+                }
+            )
             .round(1),
-            use_container_width=True, hide_index=True,
+            width="stretch",
+            hide_index=True,
         )
 
     st.markdown(
@@ -644,3 +736,13 @@ with tab3:
         "Fuente: Secretaría de Economía · DGIE · Cálculo propio</p>",
         unsafe_allow_html=True,
     )
+
+st.download_button(
+    "Descargar matriz de riesgo estatal",
+    data=scores.sort_values("dependency_score", ascending=False)
+    .to_csv(index=False)
+    .encode("utf-8-sig"),
+    file_name="riesgo_estatal_ied.csv",
+    mime="text/csv",
+)
+render_provenance()

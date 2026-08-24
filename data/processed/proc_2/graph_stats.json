@@ -4,48 +4,49 @@
   "n_communities": 7,
   "modularity": 0.1678,
   "density": 0.3869,
+  "shortest_path_distance": "inverse_ied",
   "top_state_hubs": [
     {
-      "node": "Yucatán",
-      "hub_score": 32.16
-    },
-    {
       "node": "Ciudad de México",
-      "hub_score": 28.37
-    },
-    {
-      "node": "Durango",
-      "hub_score": 23.06
+      "hub_score": 50.84
     },
     {
       "node": "Nuevo León",
-      "hub_score": 21.92
+      "hub_score": 25.9
     },
     {
       "node": "Estado de México",
-      "hub_score": 21.75
+      "hub_score": 22.5
+    },
+    {
+      "node": "Chihuahua",
+      "hub_score": 22.26
+    },
+    {
+      "node": "Guanajuato",
+      "hub_score": 20.73
     }
   ],
   "top_country_hubs": [
     {
-      "node": "Taiwán",
-      "hub_score": 40.2
-    },
-    {
-      "node": "Arabia Saudita",
-      "hub_score": 37.89
-    },
-    {
       "node": "Estados Unidos de América",
-      "hub_score": 35.0
+      "hub_score": 75.0
     },
     {
-      "node": "Venezuela, República Bolivariana de",
-      "hub_score": 19.6
+      "node": "España",
+      "hub_score": 25.84
     },
     {
-      "node": "Suecia",
-      "hub_score": 17.21
+      "node": "Canadá",
+      "hub_score": 23.84
+    },
+    {
+      "node": "Japón",
+      "hub_score": 20.09
+    },
+    {
+      "node": "Alemania",
+      "hub_score": 19.78
     }
   ]
 }

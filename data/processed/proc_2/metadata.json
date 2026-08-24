@@ -1,0 +1,9 @@
+{
+  "source": "Secretaría de Economía, Dirección General de Inversión Extranjera",
+  "currency": "USD millones corrientes",
+  "period_start": "2006-03-31",
+  "period_end": "2025-06-30",
+  "period_label": "Q1 2006 - Q2 2025",
+  "states": 32,
+  "generated_by": "pipeline/01_data_preparation.py"
+}
