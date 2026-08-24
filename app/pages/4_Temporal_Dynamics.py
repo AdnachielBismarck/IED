@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import json
 from pathlib import Path
-from app.shared import (
+from shared import (
     apply_product_styles,
     render_header,
     render_provenance,

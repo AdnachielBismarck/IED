@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from app.shared import (
+from shared import (
     apply_product_styles,
     load_metadata,
     render_header,

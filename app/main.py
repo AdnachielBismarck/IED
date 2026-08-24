@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 import json
 from pathlib import Path
 from numpy.polynomial import polynomial as P
-from app.shared import (
+from shared import (
     apply_product_styles,
     render_header,
     render_provenance,
